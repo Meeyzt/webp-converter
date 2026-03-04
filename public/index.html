@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to WebP Converter</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg-color: #0f172a;
+            --surface: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.15), transparent 25%),
+                              radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.15), transparent 25%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .header {
+            margin-bottom: 2.5rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            padding: 4rem 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            background: rgba(15, 23, 42, 0.4);
+            overflow: hidden;
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+
+        .upload-area:hover .upload-icon {
+            transform: translateY(-5px);
+        }
+
+        .upload-text {
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-subtext {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .status {
+            margin-top: 2rem;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .loader {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(99, 102, 241, 0.2);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .result-card {
+            display: none;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            padding: 1.5rem;
+            border-radius: 12px;
+            width: 100%;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-title {
+            color: var(--success);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            margin-top: 1rem;
+            transition: background 0.2s, transform 0.2s;
+            border: none;
+            cursor: pointer;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .error-msg {
+            color: var(--error);
+            font-weight: 500;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>WebP Converter</h1>
+            <p>Drop your images here to convert them instantly</p>
+        </div>
+
+        <div class="upload-area" id="drop-area">
+            <div class="upload-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+            </div>
+            <div class="upload-text">Click to browse or drag & drop</div>
+            <div class="upload-subtext">Supports PNG, JPEG, GIF (Multiple allowed)</div>
+            <input type="file" id="file-input" accept="image/*" multiple>
+        </div>
+
+        <div class="status">
+            <div class="loader" id="loader"></div>
+            <div class="error-msg" id="error-msg"></div>
+            <div class="result-card" id="result-card">
+                <div class="result-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    Conversion Successful!
+                </div>
+                <div id="file-list" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem; max-height: 250px; overflow-y: auto; text-align: left;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dropArea = document.getElementById('drop-area');
+        const fileInput = document.getElementById('file-input');
+        const loader = document.getElementById('loader');
+        const resultCard = document.getElementById('result-card');
+        const errorMsg = document.getElementById('error-msg');
+        const fileList = document.getElementById('file-list');
+
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // Highlight drop area when item is dragged over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.add('dragover'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.remove('dragover'), false);
+        });
+
+        // Handle dropped files
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length) handleFiles(files);
+        }
+
+        // Handle selected files
+        dropArea.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', function() {
+            if (this.files.length) handleFiles(this.files);
+        });
+
+        function handleFiles(files) {
+            const validFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+            if (validFiles.length === 0) {
+                showError('Please upload at least one valid image file.');
+                return;
+            }
+            uploadFiles(validFiles);
+        }
+
+        async function uploadFiles(files) {
+            const formData = new FormData();
+            files.forEach(file => formData.append('images', file));
+
+            hideStatus();
+            loader.style.display = 'block';
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+
+                if (!response.ok) throw new Error(data.error || 'Conversion failed');
+
+                showSuccess(data);
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                loader.style.display = 'none';
+                fileInput.value = ''; // Reset input
+            }
+        }
+
+        function showSuccess(data) {
+            resultCard.style.display = 'block';
+            
+            fileList.innerHTML = '';
+            
+            if (data.files && data.files.length > 0) {
+                data.files.forEach(file => {
+                    const fileItem = document.createElement('div');
+                    fileItem.style.display = 'flex';
+                    fileItem.style.alignItems = 'center';
+                    fileItem.style.justifyContent = 'space-between';
+                    fileItem.style.background = 'rgba(0,0,0,0.2)';
+                    fileItem.style.padding = '0.75rem';
+                    fileItem.style.borderRadius = '8px';
+                    fileItem.style.fontSize = '0.9rem';
+                    fileItem.style.border = '1px solid rgba(255,255,255,0.05)';
+
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = file.originalName;
+                    nameSpan.style.color = 'var(--text-muted)';
+                    nameSpan.style.whiteSpace = 'nowrap';
+                    nameSpan.style.overflow = 'hidden';
+                    nameSpan.style.textOverflow = 'ellipsis';
+                    nameSpan.style.maxWidth = '60%';
+
+                    const dlBtn = document.createElement('a');
+                    dlBtn.href = file.downloadUrl;
+                    dlBtn.download = file.filename;
+                    dlBtn.className = 'btn';
+                    dlBtn.style.marginTop = '0';
+                    dlBtn.style.padding = '0.4rem 0.8rem';
+                    dlBtn.style.fontSize = '0.8rem';
+                    dlBtn.innerHTML = `
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Download
+                    `;
+
+                    fileItem.appendChild(nameSpan);
+                    fileItem.appendChild(dlBtn);
+                    fileList.appendChild(fileItem);
+                });
+            }
+        }
+
+        function showError(msg) {
+            errorMsg.textContent = msg;
+            errorMsg.style.display = 'block';
+        }
+
+        function hideStatus() {
+            loader.style.display = 'none';
+            resultCard.style.display = 'none';
+            errorMsg.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
