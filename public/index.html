@@ -224,6 +224,17 @@
                     </svg>
                     Conversion Successful!
                 </div>
+                <!-- Container for Download All -->
+                <div id="download-all-container" style="display: none; margin-top: 1rem; text-align: right;">
+                    <button id="download-all-btn" class="btn" style="background: var(--success); color: #fff; padding: 0.5rem 1rem; font-size: 0.9rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Download All
+                    </button>
+                </div>
                 <div id="file-list" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem; max-height: 250px; overflow-y: auto; text-align: left;"></div>
             </div>
         </div>
@@ -236,6 +247,8 @@
         const resultCard = document.getElementById('result-card');
         const errorMsg = document.getElementById('error-msg');
         const fileList = document.getElementById('file-list');
+        const downloadAllContainer = document.getElementById('download-all-container');
+        const downloadAllBtn = document.getElementById('download-all-btn');
 
         // Prevent default drag behaviors
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -313,6 +326,31 @@
             fileList.innerHTML = '';
             
             if (data.files && data.files.length > 0) {
+                // Show "Download All" if more than 1 file
+                if (data.files.length > 1) {
+                    downloadAllContainer.style.display = 'block';
+                    
+                    // Attach event listener once via cloning or overwriting onclick to prevent duplicates
+                    downloadAllBtn.onclick = () => {
+                        let i = 0;
+                        const interval = setInterval(() => {
+                            if (i >= data.files.length) {
+                                clearInterval(interval);
+                                return;
+                            }
+                            const tempLink = document.createElement('a');
+                            tempLink.href = data.files[i].downloadUrl;
+                            tempLink.download = data.files[i].filename;
+                            document.body.appendChild(tempLink);
+                            tempLink.click();
+                            document.body.removeChild(tempLink);
+                            i++;
+                        }, 300); // 300ms staggered download
+                    };
+                } else {
+                    downloadAllContainer.style.display = 'none';
+                }
+
                 data.files.forEach(file => {
                     const fileItem = document.createElement('div');
                     fileItem.style.display = 'flex';
@@ -352,6 +390,8 @@
                     fileItem.appendChild(dlBtn);
                     fileList.appendChild(fileItem);
                 });
+            } else {
+                downloadAllContainer.style.display = 'none';
             }
         }
 
