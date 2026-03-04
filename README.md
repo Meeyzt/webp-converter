@@ -2,8 +2,6 @@
 
 A lightweight, premium-looking local tool that quickly and efficiently converts any image files (PNG, JPEG, GIF) to the highly optimized WebP format. Conversions happen entirely in-memory, ensuring speed and preventing any unwanted files from piling up on your local disk.
 
-![Converter UI](https://via.placeholder.com/800x450.png?text=WebP+Converter+Interface)
-
 ## Features
 
 - **🚀 Instant Conversion**: Upload and immediately download WebP files. No disk storage or temporary file lingering.
@@ -22,7 +20,7 @@ A lightweight, premium-looking local tool that quickly and efficiently converts 
 1. Clone or download this repository.
 2. Navigate into the project folder:
    ```bash
-   cd png-to-webp
+   cd webp-converter
    ```
 3. Install the dependencies:
    ```bash
